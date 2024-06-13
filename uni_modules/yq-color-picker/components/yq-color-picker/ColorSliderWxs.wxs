@@ -1,0 +1,76 @@
+var isMouseDown, instance, width, left, distance
+
+function setPostion(x) {
+	if (instance) {
+		instance.selectComponent('.slider-block').setStyle({
+			left: x - 8 + 'px'
+		})
+	}
+}
+
+function touchstart(e, ins) {
+	instance = ins
+	ins.callMethod('firstTouch')
+	isMouseDown = e.type === 'mousedown'
+	var touches=e.touches[0] || e
+	var x = touches.clientX
+	var cuttentInstance=e.instance||ins
+	var rect = cuttentInstance.getBoundingClientRect()
+	width = rect.width
+	left = rect.left
+	//获取相对坐标
+	x = x - left
+	//修正滑块超出边界
+	x = x > width ? width : x < 0 ? 0 : x
+	//计算出滑块距离比例
+	distance = x / width;
+	//设置滑块位置
+	setPostion(x)
+}
+
+function touchmove(e, ins) {
+	if (e.type === 'mousemove' && !isMouseDown) return;
+	var touches=e.touches[0] || e
+	var x = touches.clientX
+
+	//获取相对坐标
+	x = x - left
+
+	//修正滑块超出边界
+	x = x > width ? width : x < 0 ? 0 : x
+
+	//计算出滑块距离比例
+	distance = x / width;
+	//设置滑块位置
+	setPostion(x)
+	instance.callMethod('emitEvent', {distance:distance})
+}
+
+function touchend(e, ins) {
+	if (!isMouseDown && (e.type === 'mouseup' || e.type === 'mouseleave')) return;
+	isMouseDown = false
+	if (e.type === 'mouseleave' || e.type === 'mouseup') {
+		var touches=e.touches[0] || e
+		var x = touches.clientX
+		var cuttentInstance=e.instance||ins
+		var rect = cuttentInstance.getBoundingClientRect()
+		width = rect.width
+		left = rect.left
+		//获取相对坐标
+		x = x - left
+		//修正滑块超出边界
+		x = x > width ? width : x < 0 ? 0 : x
+		//计算出滑块距离比例
+		distance = x / width;
+		//设置滑块位置
+		setPostion(x)
+	}
+	instance.callMethod('emitEvent', {distance:distance})
+}
+
+module.exports = {
+	touchstart: touchstart,
+	touchmove: touchmove,
+	touchend: touchend,
+	setPostion: setPostion,
+}
