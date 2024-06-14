@@ -16,4 +16,4 @@ unpackage/dist/dev/
 *.pyc
 
 # UniApp
-.hubilderx/
+/.hubilderx/
