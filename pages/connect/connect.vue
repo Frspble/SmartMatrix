@@ -93,7 +93,9 @@
     console.log('发现设备')
     console.log(res)
     if (res.devices[0].name === 'SmartMatrix'){
-      blueDeviceList.value.push(res.devices[0])
+      if (!blueDeviceList.value.some(device => device.deviceId === res.devices[0].deviceId)) {
+        blueDeviceList.value.push(res.devices[0])
+      }
     }
   }
   
@@ -116,7 +118,7 @@
         console.log(res)
         stopDiscovery()
         uni.setStorageSync('connectedDevice', currentDevice.value)
-        uni.navigateTo({
+        uni.reLaunch({
           url: '/pages/index/index'
         })
       },
@@ -179,6 +181,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    min-height: 30vh;
   }
 
   .BLE-list{

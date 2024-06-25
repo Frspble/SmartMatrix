@@ -166,17 +166,17 @@
   const ssid_input = ref('')
   const pass_input = ref('')
   
-  const SERVICE1_UUID       = "14d59bde-ba3d-4477-ba91-3a7d6589b164"   // UART service UUID
-  const BRIGHTNESS_UUID     = "be8948de-9de8-4736-9da8-8a8169265a0e"
-  const COLOR_UUID          = "515ced63-935b-48f8-8087-4b93e2e64f88"
-  const ANNIVERSARY_UUID    = "e56b3238-0af0-4502-82ad-473dc6f3d9f9"
-  const BIRTHDAY_UUID       = "0ceae7bf-16ed-46f5-b6c3-17dc8439d574"
-  const WIFI_UUID           = "da75e597-b36a-444c-b771-9b058fb1fcd8"
-  const ANIM_UUID           = "8e952b12-dd4e-4c78-8bc6-810dc018c22b"
+  const SERVICE1_UUID       = "14D59BDE-BA3D-4477-BA91-3A7D6589B164"   // UART SERVICE UUID
+  const BRIGHTNESS_UUID     = "BE8948DE-9DE8-4736-9DA8-8A8169265A0E"
+  const COLOR_UUID          = "515CED63-935B-48F8-8087-4B93E2E64F88"
+  const ANNIVERSARY_UUID    = "E56B3238-0AF0-4502-82AD-473DC6F3D9F9"
+  const BIRTHDAY_UUID       = "0CEAE7BF-16ED-46F5-B6C3-17DC8439D574"
+  const WIFI_UUID           = "DA75E597-B36A-444C-B771-9B058FB1FCD8"
+  const ANIM_UUID           = "8E952B12-DD4E-4C78-8BC6-810DC018C22B"
   
-  const SERVICE2_UUID       = "5738a36e-8e61-48cf-ad73-06fce0d5843d"   // UART service UUID
-  const UUID_RX             = "836a72f2-c6c7-44c9-b0ea-ce09cc23038f"   //通用接收特性
-  const UUID_TX             = "a0ea1b56-2f4d-464c-8de8-d523fbb9b284"   //通用发送特性
+  const SERVICE2_UUID       = "5738A36E-8E61-48CF-AD73-06FCE0D5843D"   // UART SERVICE UUID
+  const UUID_RX             = "836A72F2-C6C7-44C9-B0EA-CE09CC23038F"   //通用接收特性
+  const UUID_TX             = "A0EA1B56-2F4D-464C-8DE8-D523FBB9B284"   //通用发送特性
   
   const Brightness = ref(40)
   const autoBrightness = ref(false)
@@ -281,10 +281,13 @@
           title: '连接成功',
           icon: 'success',
         })
-        initMessage()
-        setTime()
-        getSettings()
         listenConnectionChange()
+        getService().then(()=>{
+          initMessage()
+          setTime()
+          getSettings()
+        })
+        
       },
       fail(err) {
         console.log('连接失败')
@@ -319,6 +322,54 @@
     })
     listenedConnectionChange = true
   }
+  
+function getService() {
+  return new Promise((resolve, reject) => {
+    uni.getBLEDeviceServices({
+      deviceId,
+      success(res) {
+        console.log('device services:', res.services)
+        resolve(res.services)
+      },
+      fail(err) {
+        console.error(err)
+        reject(err)
+      }
+    })
+  })
+  .then(services => {
+    return new Promise((resolve, reject) => {
+      uni.getBLEDeviceCharacteristics({
+        deviceId,
+        serviceId: SERVICE1_UUID,
+        success(res) {
+          console.log('device getBLEDeviceCharacteristics:', res.characteristics)
+          resolve(res.characteristics)
+        },
+        fail(err) {
+          console.error(err)
+          reject(err)
+        }
+      })
+    })
+  })
+  .then(characteristics => {
+    return new Promise((resolve, reject) => {
+      uni.getBLEDeviceCharacteristics({
+        deviceId,
+        serviceId: SERVICE2_UUID,
+        success(res) {
+          console.log('device getBLEDeviceCharacteristics:', res.characteristics)
+          resolve(res.characteristics)
+        },
+        fail(err) {
+          console.error(err)
+          reject(err)
+        }
+      })
+    })
+  })
+}
   
   function getSettings(){
     getBrightness()
@@ -370,7 +421,7 @@
       characteristicId: UUID_TX,   //特征值ID
       success(res) {
         uni.onBLECharacteristicValueChange(function (res) {
-          let charId = res.characteristicId.toLocaleLowerCase()
+          let charId = res.characteristicId
           let rValue = ab2hex(res.value)
 
           console.log(charId)
